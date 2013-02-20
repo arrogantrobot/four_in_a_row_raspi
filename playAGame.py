@@ -16,8 +16,8 @@ def initOutputs(mcp, startPin, stopPin):
 def initInputs(mcp, startPin, stopPin):
     for pin in range(startPin, stopPin):
         print "Setting pin %d to input." % pin
-        mcp.config(pin, mcp.INPUT)
         mcp.pullup(pin, 1)
+        mcp.config(pin, mcp.INPUT)
 
 def lightSweepUp(mcp, maxNum, sleepDuration):
     for output in range(maxNum - 1):
@@ -34,24 +34,40 @@ def lightSweepDown(mcp, maxNum, sleepDuration):
         mcp.output(output, OFF)
 
 def getInputVal(mcp, pin):
-    val = mcp.input(pin) >> pin - 8
-    print "pin {} is {}".format(pin, val)
+    pinVal = mcp.input(pin) 
+    val = pinVal >> pin
+    #print "pin {} returns {} is {}".format(pin, pinVal, val)
     return val
 
 def checkInputs(mcp, minSwitch, maxSwitch):
     for pin in range(minSwitch, maxSwitch):
-        if getInputVal(mcp, pin):
-            print "input %d is on" % pin
-            return True
+        if getInputVal(mcp, pin) == 0:
+            #print "input %d is on" % pin
+            return pin
     return False
+
+def getInput(mcp):
+    answer = False
+    while(not answer): 
+        answer = checkInputs(mcp, 8, 16)
+    return answer - 9
 
 if __name__ == '__main__':
     interval = 0.05
     mcp = Adafruit_MCP230XX(address = 0x20, num_gpios = 16, busnum = 1)
+
+    #mcp.pullup(7, 1)
+    #mcp.config(7, mcp.INPUT)
+    #print "answer = %d" % (mcp.input(7) >> 7)
+
     initOutputs(mcp, 0, 7)
     initInputs(mcp, 8, 16)
-    while (not checkInputs(mcp, 8, 16)):
-        sleep(0.1)
+
+    print "Make your move."
+    print "You moved at column %d" % (getInput(mcp) + 1)
+
+    #while (not checkInputs(mcp, 8, 16)):
+    #    time.sleep(0.1)
 
         #lightSweepUp(7, interval, mcp)
         #lightSweepDown(7, interval, mcp)
